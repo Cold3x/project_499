@@ -3,12 +3,10 @@ const express = require('express');
 const http = require('http');
 const open = require('open');
 const path = require('path');
-const router = require('./router/routes');
 
 const app = express();
 
-const bundlePath = path.join(__dirname, 'public/home/index.html');
-const evalPath = path.join(__dirname, 'public/evaluation/index.html');
+const bundlePath = path.join(__dirname, 'public/index.html');
 // const bundlePath = process.argv[2];
 // const port = process.argv[3];
 
@@ -22,13 +20,9 @@ app.use((req, res, next) => {
 // 8082
 const port = 8082
 const bundler = new Bundler(bundlePath);
-const evaluate = new Bundler(evalPath);
 
-// app.use(router)
 app.use(bundler.middleware());
-app.get('/evaluation/index.html',(req,res)=>{
-    res.sendFile(evalPath)
-});
+// app.use(router)
 
 const server = http.createServer(app);
 server.listen(port);

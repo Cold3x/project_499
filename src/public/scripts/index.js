@@ -1,13 +1,32 @@
+import { create } from "heatmap.js";
 import "regenerator-runtime/runtime";
 import EasySeeSo from "seeso/easy-seeso";
 import showGaze from "../showGaze";
+import h337 from "heatmap.js";
 
 const licenseKey = "dev_fbpjqcqmqji0bq6asinisgv2tzv6ybwaikbnzlw4";
+
+var heatmapInstance = h337.create({
+  container: document.getElementById("heatMap"),
+});
+
+function createHeatmap(gazeInfo) {
+  console.log(gazeInfo);
+  if (gazeInfo.x != NaN && gazeInfo.y != NaN && gazeInfo.x <= 1000 && gazeInfo.y <= 1000) {
+    heatmapInstance.addData(
+      {
+        x: gazeInfo.x,
+        y: gazeInfo.y,
+        value: 1
+      }
+    )
+  }
+}
 
 function onClickCalibrationBtn() {
   const userId = "YOUR_USER_ID";
   // Next Page after calibration
-  const redirectUrl = "http://localhost:8082/evaluate";
+  const redirectUrl = "http://localhost:8082";
   const calibrationPoint = 1;
   EasySeeSo.openCalibrationPage(
     licenseKey,
@@ -18,7 +37,9 @@ function onClickCalibrationBtn() {
 }
 
 function onClickNextBtn() {
-    window.location.replace('../evaluation/index.html')
+  // location.href = 'eval.html'
+  // createHeatmap();
+  // hideImage()
 }
 
 // in redirected page
@@ -38,6 +59,7 @@ function parseCalibrationDataInQueryString() {
 function onGaze(gazeInfo) {
   // do something with gaze info.
   showGaze(gazeInfo);
+  createHeatmap(gazeInfo);
 }
 
 // debug callback.
@@ -49,7 +71,6 @@ async function main() {
   const calibrationData = parseCalibrationDataInQueryString();
 
   if (calibrationData) {
-    
     const seeSo = new EasySeeSo();
     await seeSo.init(
       licenseKey,

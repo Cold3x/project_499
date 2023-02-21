@@ -117,7 +117,733 @@ parcelRequire = (function (modules, cache, entry, globalName) {
   }
 
   return newRequire;
-})({"../../../node_modules/regenerator-runtime/runtime.js":[function(require,module,exports) {
+})({"../../node_modules/heatmap.js/build/heatmap.js":[function(require,module,exports) {
+var define;
+/*
+ * heatmap.js v2.0.5 | JavaScript Heatmap Library
+ *
+ * Copyright 2008-2016 Patrick Wied <heatmapjs@patrick-wied.at> - All rights reserved.
+ * Dual licensed under MIT and Beerware license 
+ *
+ * :: 2016-09-05 01:16
+ */
+;(function (name, context, factory) {
+
+  // Supports UMD. AMD, CommonJS/Node.js and browser context
+  if (typeof module !== "undefined" && module.exports) {
+    module.exports = factory();
+  } else if (typeof define === "function" && define.amd) {
+    define(factory);
+  } else {
+    context[name] = factory();
+  }
+
+})("h337", this, function () {
+
+// Heatmap Config stores default values and will be merged with instance config
+var HeatmapConfig = {
+  defaultRadius: 40,
+  defaultRenderer: 'canvas2d',
+  defaultGradient: { 0.25: "rgb(0,0,255)", 0.55: "rgb(0,255,0)", 0.85: "yellow", 1.0: "rgb(255,0,0)"},
+  defaultMaxOpacity: 1,
+  defaultMinOpacity: 0,
+  defaultBlur: .85,
+  defaultXField: 'x',
+  defaultYField: 'y',
+  defaultValueField: 'value', 
+  plugins: {}
+};
+var Store = (function StoreClosure() {
+
+  var Store = function Store(config) {
+    this._coordinator = {};
+    this._data = [];
+    this._radi = [];
+    this._min = 10;
+    this._max = 1;
+    this._xField = config['xField'] || config.defaultXField;
+    this._yField = config['yField'] || config.defaultYField;
+    this._valueField = config['valueField'] || config.defaultValueField;
+
+    if (config["radius"]) {
+      this._cfgRadius = config["radius"];
+    }
+  };
+
+  var defaultRadius = HeatmapConfig.defaultRadius;
+
+  Store.prototype = {
+    // when forceRender = false -> called from setData, omits renderall event
+    _organiseData: function(dataPoint, forceRender) {
+        var x = dataPoint[this._xField];
+        var y = dataPoint[this._yField];
+        var radi = this._radi;
+        var store = this._data;
+        var max = this._max;
+        var min = this._min;
+        var value = dataPoint[this._valueField] || 1;
+        var radius = dataPoint.radius || this._cfgRadius || defaultRadius;
+
+        if (!store[x]) {
+          store[x] = [];
+          radi[x] = [];
+        }
+
+        if (!store[x][y]) {
+          store[x][y] = value;
+          radi[x][y] = radius;
+        } else {
+          store[x][y] += value;
+        }
+        var storedVal = store[x][y];
+
+        if (storedVal > max) {
+          if (!forceRender) {
+            this._max = storedVal;
+          } else {
+            this.setDataMax(storedVal);
+          }
+          return false;
+        } else if (storedVal < min) {
+          if (!forceRender) {
+            this._min = storedVal;
+          } else {
+            this.setDataMin(storedVal);
+          }
+          return false;
+        } else {
+          return { 
+            x: x, 
+            y: y,
+            value: value, 
+            radius: radius,
+            min: min,
+            max: max 
+          };
+        }
+    },
+    _unOrganizeData: function() {
+      var unorganizedData = [];
+      var data = this._data;
+      var radi = this._radi;
+
+      for (var x in data) {
+        for (var y in data[x]) {
+
+          unorganizedData.push({
+            x: x,
+            y: y,
+            radius: radi[x][y],
+            value: data[x][y]
+          });
+
+        }
+      }
+      return {
+        min: this._min,
+        max: this._max,
+        data: unorganizedData
+      };
+    },
+    _onExtremaChange: function() {
+      this._coordinator.emit('extremachange', {
+        min: this._min,
+        max: this._max
+      });
+    },
+    addData: function() {
+      if (arguments[0].length > 0) {
+        var dataArr = arguments[0];
+        var dataLen = dataArr.length;
+        while (dataLen--) {
+          this.addData.call(this, dataArr[dataLen]);
+        }
+      } else {
+        // add to store  
+        var organisedEntry = this._organiseData(arguments[0], true);
+        if (organisedEntry) {
+          // if it's the first datapoint initialize the extremas with it
+          if (this._data.length === 0) {
+            this._min = this._max = organisedEntry.value;
+          }
+          this._coordinator.emit('renderpartial', {
+            min: this._min,
+            max: this._max,
+            data: [organisedEntry]
+          });
+        }
+      }
+      return this;
+    },
+    setData: function(data) {
+      var dataPoints = data.data;
+      var pointsLen = dataPoints.length;
+
+
+      // reset data arrays
+      this._data = [];
+      this._radi = [];
+
+      for(var i = 0; i < pointsLen; i++) {
+        this._organiseData(dataPoints[i], false);
+      }
+      this._max = data.max;
+      this._min = data.min || 0;
+      
+      this._onExtremaChange();
+      this._coordinator.emit('renderall', this._getInternalData());
+      return this;
+    },
+    removeData: function() {
+      // TODO: implement
+    },
+    setDataMax: function(max) {
+      this._max = max;
+      this._onExtremaChange();
+      this._coordinator.emit('renderall', this._getInternalData());
+      return this;
+    },
+    setDataMin: function(min) {
+      this._min = min;
+      this._onExtremaChange();
+      this._coordinator.emit('renderall', this._getInternalData());
+      return this;
+    },
+    setCoordinator: function(coordinator) {
+      this._coordinator = coordinator;
+    },
+    _getInternalData: function() {
+      return { 
+        max: this._max,
+        min: this._min, 
+        data: this._data,
+        radi: this._radi 
+      };
+    },
+    getData: function() {
+      return this._unOrganizeData();
+    }/*,
+
+      TODO: rethink.
+
+    getValueAt: function(point) {
+      var value;
+      var radius = 100;
+      var x = point.x;
+      var y = point.y;
+      var data = this._data;
+
+      if (data[x] && data[x][y]) {
+        return data[x][y];
+      } else {
+        var values = [];
+        // radial search for datapoints based on default radius
+        for(var distance = 1; distance < radius; distance++) {
+          var neighbors = distance * 2 +1;
+          var startX = x - distance;
+          var startY = y - distance;
+
+          for(var i = 0; i < neighbors; i++) {
+            for (var o = 0; o < neighbors; o++) {
+              if ((i == 0 || i == neighbors-1) || (o == 0 || o == neighbors-1)) {
+                if (data[startY+i] && data[startY+i][startX+o]) {
+                  values.push(data[startY+i][startX+o]);
+                }
+              } else {
+                continue;
+              } 
+            }
+          }
+        }
+        if (values.length > 0) {
+          return Math.max.apply(Math, values);
+        }
+      }
+      return false;
+    }*/
+  };
+
+
+  return Store;
+})();
+
+var Canvas2dRenderer = (function Canvas2dRendererClosure() {
+
+  var _getColorPalette = function(config) {
+    var gradientConfig = config.gradient || config.defaultGradient;
+    var paletteCanvas = document.createElement('canvas');
+    var paletteCtx = paletteCanvas.getContext('2d');
+
+    paletteCanvas.width = 256;
+    paletteCanvas.height = 1;
+
+    var gradient = paletteCtx.createLinearGradient(0, 0, 256, 1);
+    for (var key in gradientConfig) {
+      gradient.addColorStop(key, gradientConfig[key]);
+    }
+
+    paletteCtx.fillStyle = gradient;
+    paletteCtx.fillRect(0, 0, 256, 1);
+
+    return paletteCtx.getImageData(0, 0, 256, 1).data;
+  };
+
+  var _getPointTemplate = function(radius, blurFactor) {
+    var tplCanvas = document.createElement('canvas');
+    var tplCtx = tplCanvas.getContext('2d');
+    var x = radius;
+    var y = radius;
+    tplCanvas.width = tplCanvas.height = radius*2;
+
+    if (blurFactor == 1) {
+      tplCtx.beginPath();
+      tplCtx.arc(x, y, radius, 0, 2 * Math.PI, false);
+      tplCtx.fillStyle = 'rgba(0,0,0,1)';
+      tplCtx.fill();
+    } else {
+      var gradient = tplCtx.createRadialGradient(x, y, radius*blurFactor, x, y, radius);
+      gradient.addColorStop(0, 'rgba(0,0,0,1)');
+      gradient.addColorStop(1, 'rgba(0,0,0,0)');
+      tplCtx.fillStyle = gradient;
+      tplCtx.fillRect(0, 0, 2*radius, 2*radius);
+    }
+
+
+
+    return tplCanvas;
+  };
+
+  var _prepareData = function(data) {
+    var renderData = [];
+    var min = data.min;
+    var max = data.max;
+    var radi = data.radi;
+    var data = data.data;
+
+    var xValues = Object.keys(data);
+    var xValuesLen = xValues.length;
+
+    while(xValuesLen--) {
+      var xValue = xValues[xValuesLen];
+      var yValues = Object.keys(data[xValue]);
+      var yValuesLen = yValues.length;
+      while(yValuesLen--) {
+        var yValue = yValues[yValuesLen];
+        var value = data[xValue][yValue];
+        var radius = radi[xValue][yValue];
+        renderData.push({
+          x: xValue,
+          y: yValue,
+          value: value,
+          radius: radius
+        });
+      }
+    }
+
+    return {
+      min: min,
+      max: max,
+      data: renderData
+    };
+  };
+
+
+  function Canvas2dRenderer(config) {
+    var container = config.container;
+    var shadowCanvas = this.shadowCanvas = document.createElement('canvas');
+    var canvas = this.canvas = config.canvas || document.createElement('canvas');
+    var renderBoundaries = this._renderBoundaries = [10000, 10000, 0, 0];
+
+    var computed = getComputedStyle(config.container) || {};
+
+    canvas.className = 'heatmap-canvas';
+
+    this._width = canvas.width = shadowCanvas.width = config.width || +(computed.width.replace(/px/,''));
+    this._height = canvas.height = shadowCanvas.height = config.height || +(computed.height.replace(/px/,''));
+
+    this.shadowCtx = shadowCanvas.getContext('2d');
+    this.ctx = canvas.getContext('2d');
+
+    // @TODO:
+    // conditional wrapper
+
+    canvas.style.cssText = shadowCanvas.style.cssText = 'position:absolute;left:0;top:0;';
+
+    container.style.position = 'relative';
+    container.appendChild(canvas);
+
+    this._palette = _getColorPalette(config);
+    this._templates = {};
+
+    this._setStyles(config);
+  };
+
+  Canvas2dRenderer.prototype = {
+    renderPartial: function(data) {
+      if (data.data.length > 0) {
+        this._drawAlpha(data);
+        this._colorize();
+      }
+    },
+    renderAll: function(data) {
+      // reset render boundaries
+      this._clear();
+      if (data.data.length > 0) {
+        this._drawAlpha(_prepareData(data));
+        this._colorize();
+      }
+    },
+    _updateGradient: function(config) {
+      this._palette = _getColorPalette(config);
+    },
+    updateConfig: function(config) {
+      if (config['gradient']) {
+        this._updateGradient(config);
+      }
+      this._setStyles(config);
+    },
+    setDimensions: function(width, height) {
+      this._width = width;
+      this._height = height;
+      this.canvas.width = this.shadowCanvas.width = width;
+      this.canvas.height = this.shadowCanvas.height = height;
+    },
+    _clear: function() {
+      this.shadowCtx.clearRect(0, 0, this._width, this._height);
+      this.ctx.clearRect(0, 0, this._width, this._height);
+    },
+    _setStyles: function(config) {
+      this._blur = (config.blur == 0)?0:(config.blur || config.defaultBlur);
+
+      if (config.backgroundColor) {
+        this.canvas.style.backgroundColor = config.backgroundColor;
+      }
+
+      this._width = this.canvas.width = this.shadowCanvas.width = config.width || this._width;
+      this._height = this.canvas.height = this.shadowCanvas.height = config.height || this._height;
+
+
+      this._opacity = (config.opacity || 0) * 255;
+      this._maxOpacity = (config.maxOpacity || config.defaultMaxOpacity) * 255;
+      this._minOpacity = (config.minOpacity || config.defaultMinOpacity) * 255;
+      this._useGradientOpacity = !!config.useGradientOpacity;
+    },
+    _drawAlpha: function(data) {
+      var min = this._min = data.min;
+      var max = this._max = data.max;
+      var data = data.data || [];
+      var dataLen = data.length;
+      // on a point basis?
+      var blur = 1 - this._blur;
+
+      while(dataLen--) {
+
+        var point = data[dataLen];
+
+        var x = point.x;
+        var y = point.y;
+        var radius = point.radius;
+        // if value is bigger than max
+        // use max as value
+        var value = Math.min(point.value, max);
+        var rectX = x - radius;
+        var rectY = y - radius;
+        var shadowCtx = this.shadowCtx;
+
+
+
+
+        var tpl;
+        if (!this._templates[radius]) {
+          this._templates[radius] = tpl = _getPointTemplate(radius, blur);
+        } else {
+          tpl = this._templates[radius];
+        }
+        // value from minimum / value range
+        // => [0, 1]
+        var templateAlpha = (value-min)/(max-min);
+        // this fixes #176: small values are not visible because globalAlpha < .01 cannot be read from imageData
+        shadowCtx.globalAlpha = templateAlpha < .01 ? .01 : templateAlpha;
+
+        shadowCtx.drawImage(tpl, rectX, rectY);
+
+        // update renderBoundaries
+        if (rectX < this._renderBoundaries[0]) {
+            this._renderBoundaries[0] = rectX;
+          }
+          if (rectY < this._renderBoundaries[1]) {
+            this._renderBoundaries[1] = rectY;
+          }
+          if (rectX + 2*radius > this._renderBoundaries[2]) {
+            this._renderBoundaries[2] = rectX + 2*radius;
+          }
+          if (rectY + 2*radius > this._renderBoundaries[3]) {
+            this._renderBoundaries[3] = rectY + 2*radius;
+          }
+
+      }
+    },
+    _colorize: function() {
+      var x = this._renderBoundaries[0];
+      var y = this._renderBoundaries[1];
+      var width = this._renderBoundaries[2] - x;
+      var height = this._renderBoundaries[3] - y;
+      var maxWidth = this._width;
+      var maxHeight = this._height;
+      var opacity = this._opacity;
+      var maxOpacity = this._maxOpacity;
+      var minOpacity = this._minOpacity;
+      var useGradientOpacity = this._useGradientOpacity;
+
+      if (x < 0) {
+        x = 0;
+      }
+      if (y < 0) {
+        y = 0;
+      }
+      if (x + width > maxWidth) {
+        width = maxWidth - x;
+      }
+      if (y + height > maxHeight) {
+        height = maxHeight - y;
+      }
+
+      var img = this.shadowCtx.getImageData(x, y, width, height);
+      var imgData = img.data;
+      var len = imgData.length;
+      var palette = this._palette;
+
+
+      for (var i = 3; i < len; i+= 4) {
+        var alpha = imgData[i];
+        var offset = alpha * 4;
+
+
+        if (!offset) {
+          continue;
+        }
+
+        var finalAlpha;
+        if (opacity > 0) {
+          finalAlpha = opacity;
+        } else {
+          if (alpha < maxOpacity) {
+            if (alpha < minOpacity) {
+              finalAlpha = minOpacity;
+            } else {
+              finalAlpha = alpha;
+            }
+          } else {
+            finalAlpha = maxOpacity;
+          }
+        }
+
+        imgData[i-3] = palette[offset];
+        imgData[i-2] = palette[offset + 1];
+        imgData[i-1] = palette[offset + 2];
+        imgData[i] = useGradientOpacity ? palette[offset + 3] : finalAlpha;
+
+      }
+
+      img.data = imgData;
+      this.ctx.putImageData(img, x, y);
+
+      this._renderBoundaries = [1000, 1000, 0, 0];
+
+    },
+    getValueAt: function(point) {
+      var value;
+      var shadowCtx = this.shadowCtx;
+      var img = shadowCtx.getImageData(point.x, point.y, 1, 1);
+      var data = img.data[3];
+      var max = this._max;
+      var min = this._min;
+
+      value = (Math.abs(max-min) * (data/255)) >> 0;
+
+      return value;
+    },
+    getDataURL: function() {
+      return this.canvas.toDataURL();
+    }
+  };
+
+
+  return Canvas2dRenderer;
+})();
+
+
+var Renderer = (function RendererClosure() {
+
+  var rendererFn = false;
+
+  if (HeatmapConfig['defaultRenderer'] === 'canvas2d') {
+    rendererFn = Canvas2dRenderer;
+  }
+
+  return rendererFn;
+})();
+
+
+var Util = {
+  merge: function() {
+    var merged = {};
+    var argsLen = arguments.length;
+    for (var i = 0; i < argsLen; i++) {
+      var obj = arguments[i]
+      for (var key in obj) {
+        merged[key] = obj[key];
+      }
+    }
+    return merged;
+  }
+};
+// Heatmap Constructor
+var Heatmap = (function HeatmapClosure() {
+
+  var Coordinator = (function CoordinatorClosure() {
+
+    function Coordinator() {
+      this.cStore = {};
+    };
+
+    Coordinator.prototype = {
+      on: function(evtName, callback, scope) {
+        var cStore = this.cStore;
+
+        if (!cStore[evtName]) {
+          cStore[evtName] = [];
+        }
+        cStore[evtName].push((function(data) {
+            return callback.call(scope, data);
+        }));
+      },
+      emit: function(evtName, data) {
+        var cStore = this.cStore;
+        if (cStore[evtName]) {
+          var len = cStore[evtName].length;
+          for (var i=0; i<len; i++) {
+            var callback = cStore[evtName][i];
+            callback(data);
+          }
+        }
+      }
+    };
+
+    return Coordinator;
+  })();
+
+
+  var _connect = function(scope) {
+    var renderer = scope._renderer;
+    var coordinator = scope._coordinator;
+    var store = scope._store;
+
+    coordinator.on('renderpartial', renderer.renderPartial, renderer);
+    coordinator.on('renderall', renderer.renderAll, renderer);
+    coordinator.on('extremachange', function(data) {
+      scope._config.onExtremaChange &&
+      scope._config.onExtremaChange({
+        min: data.min,
+        max: data.max,
+        gradient: scope._config['gradient'] || scope._config['defaultGradient']
+      });
+    });
+    store.setCoordinator(coordinator);
+  };
+
+
+  function Heatmap() {
+    var config = this._config = Util.merge(HeatmapConfig, arguments[0] || {});
+    this._coordinator = new Coordinator();
+    if (config['plugin']) {
+      var pluginToLoad = config['plugin'];
+      if (!HeatmapConfig.plugins[pluginToLoad]) {
+        throw new Error('Plugin \''+ pluginToLoad + '\' not found. Maybe it was not registered.');
+      } else {
+        var plugin = HeatmapConfig.plugins[pluginToLoad];
+        // set plugin renderer and store
+        this._renderer = new plugin.renderer(config);
+        this._store = new plugin.store(config);
+      }
+    } else {
+      this._renderer = new Renderer(config);
+      this._store = new Store(config);
+    }
+    _connect(this);
+  };
+
+  // @TODO:
+  // add API documentation
+  Heatmap.prototype = {
+    addData: function() {
+      this._store.addData.apply(this._store, arguments);
+      return this;
+    },
+    removeData: function() {
+      this._store.removeData && this._store.removeData.apply(this._store, arguments);
+      return this;
+    },
+    setData: function() {
+      this._store.setData.apply(this._store, arguments);
+      return this;
+    },
+    setDataMax: function() {
+      this._store.setDataMax.apply(this._store, arguments);
+      return this;
+    },
+    setDataMin: function() {
+      this._store.setDataMin.apply(this._store, arguments);
+      return this;
+    },
+    configure: function(config) {
+      this._config = Util.merge(this._config, config);
+      this._renderer.updateConfig(this._config);
+      this._coordinator.emit('renderall', this._store._getInternalData());
+      return this;
+    },
+    repaint: function() {
+      this._coordinator.emit('renderall', this._store._getInternalData());
+      return this;
+    },
+    getData: function() {
+      return this._store.getData();
+    },
+    getDataURL: function() {
+      return this._renderer.getDataURL();
+    },
+    getValueAt: function(point) {
+
+      if (this._store.getValueAt) {
+        return this._store.getValueAt(point);
+      } else  if (this._renderer.getValueAt) {
+        return this._renderer.getValueAt(point);
+      } else {
+        return null;
+      }
+    }
+  };
+
+  return Heatmap;
+
+})();
+
+
+// core
+var heatmapFactory = {
+  create: function(config) {
+    return new Heatmap(config);
+  },
+  register: function(pluginKey, plugin) {
+    HeatmapConfig.plugins[pluginKey] = plugin;
+  }
+};
+
+return heatmapFactory;
+
+
+});
+},{}],"../../node_modules/regenerator-runtime/runtime.js":[function(require,module,exports) {
 var define;
 /**
  * Copyright (c) 2014-present, Facebook, Inc.
@@ -881,7 +1607,7 @@ try {
   }
 }
 
-},{}],"../../../node_modules/seeso/dist/seeso.js":[function(require,module,exports) {
+},{}],"../../node_modules/seeso/dist/seeso.js":[function(require,module,exports) {
 var define;
 /*
  * ATTENTION: The "eval" devtool has been used (maybe by default in mode: "development").
@@ -1464,7 +2190,7 @@ eval("function e(e,r){if(!f)return!1;const n=e.buffer;let u=l.get(n);if(null==u)
 /******/ })()
 ;
 });
-},{}],"../../../node_modules/seeso/easy-seeso.js":[function(require,module,exports) {
+},{}],"../../node_modules/seeso/easy-seeso.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -1640,14 +2366,18 @@ class EasySeeso {
 }
 var _default = EasySeeso;
 exports.default = _default;
-},{"seeso":"../../../node_modules/seeso/dist/seeso.js"}],"../showGaze.js":[function(require,module,exports) {
+},{"seeso":"../../node_modules/seeso/dist/seeso.js"}],"showGaze.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.default = void 0;
+var _heatmap = _interopRequireDefault(require("heatmap.js"));
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 // helper functions to display gaze information and dot in browser.
+
+var gazeData = [];
 
 // show gaze information on screen.
 function showGazeInfoOnDom(gazeInfo) {
@@ -1661,39 +2391,63 @@ function showGazeDotOnDom(gazeInfo) {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
   var ctx = canvas.getContext("2d");
-  ctx.fillStyle = '#FF0000';
+  ctx.fillStyle = "#FF0000";
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.beginPath();
   ctx.arc(gazeInfo.x, gazeInfo.y, 10, 0, Math.PI * 2, true);
   ctx.fill();
 }
+function hideUi() {
+  document.getElementById("gazeheader").style.display = "none";
+  document.getElementById("gazeInfo").style.display = "none";
+  document.getElementById("calibrationButton").style.display = "none";
+}
 function showGaze(gazeInfo) {
+  hideUi();
   showGazeInfoOnDom(gazeInfo);
-  showGazeDotOnDom(gazeInfo);
+  //   showGazeDotOnDom(gazeInfo);
 }
 var _default = showGaze;
 exports.default = _default;
-},{}],"index.js":[function(require,module,exports) {
+},{"heatmap.js":"../../node_modules/heatmap.js/build/heatmap.js"}],"scripts/index.js":[function(require,module,exports) {
 "use strict";
 
+var _heatmap = _interopRequireWildcard(require("heatmap.js"));
 require("regenerator-runtime/runtime");
 var _easySeeso = _interopRequireDefault(require("seeso/easy-seeso"));
 var _showGaze = _interopRequireDefault(require("../showGaze"));
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
+function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof(obj); }
 function _regeneratorRuntime() { "use strict"; /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/facebook/regenerator/blob/main/LICENSE */ _regeneratorRuntime = function _regeneratorRuntime() { return exports; }; var exports = {}, Op = Object.prototype, hasOwn = Op.hasOwnProperty, defineProperty = Object.defineProperty || function (obj, key, desc) { obj[key] = desc.value; }, $Symbol = "function" == typeof Symbol ? Symbol : {}, iteratorSymbol = $Symbol.iterator || "@@iterator", asyncIteratorSymbol = $Symbol.asyncIterator || "@@asyncIterator", toStringTagSymbol = $Symbol.toStringTag || "@@toStringTag"; function define(obj, key, value) { return Object.defineProperty(obj, key, { value: value, enumerable: !0, configurable: !0, writable: !0 }), obj[key]; } try { define({}, ""); } catch (err) { define = function define(obj, key, value) { return obj[key] = value; }; } function wrap(innerFn, outerFn, self, tryLocsList) { var protoGenerator = outerFn && outerFn.prototype instanceof Generator ? outerFn : Generator, generator = Object.create(protoGenerator.prototype), context = new Context(tryLocsList || []); return defineProperty(generator, "_invoke", { value: makeInvokeMethod(innerFn, self, context) }), generator; } function tryCatch(fn, obj, arg) { try { return { type: "normal", arg: fn.call(obj, arg) }; } catch (err) { return { type: "throw", arg: err }; } } exports.wrap = wrap; var ContinueSentinel = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} var IteratorPrototype = {}; define(IteratorPrototype, iteratorSymbol, function () { return this; }); var getProto = Object.getPrototypeOf, NativeIteratorPrototype = getProto && getProto(getProto(values([]))); NativeIteratorPrototype && NativeIteratorPrototype !== Op && hasOwn.call(NativeIteratorPrototype, iteratorSymbol) && (IteratorPrototype = NativeIteratorPrototype); var Gp = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(IteratorPrototype); function defineIteratorMethods(prototype) { ["next", "throw", "return"].forEach(function (method) { define(prototype, method, function (arg) { return this._invoke(method, arg); }); }); } function AsyncIterator(generator, PromiseImpl) { function invoke(method, arg, resolve, reject) { var record = tryCatch(generator[method], generator, arg); if ("throw" !== record.type) { var result = record.arg, value = result.value; return value && "object" == _typeof(value) && hasOwn.call(value, "__await") ? PromiseImpl.resolve(value.__await).then(function (value) { invoke("next", value, resolve, reject); }, function (err) { invoke("throw", err, resolve, reject); }) : PromiseImpl.resolve(value).then(function (unwrapped) { result.value = unwrapped, resolve(result); }, function (error) { return invoke("throw", error, resolve, reject); }); } reject(record.arg); } var previousPromise; defineProperty(this, "_invoke", { value: function value(method, arg) { function callInvokeWithMethodAndArg() { return new PromiseImpl(function (resolve, reject) { invoke(method, arg, resolve, reject); }); } return previousPromise = previousPromise ? previousPromise.then(callInvokeWithMethodAndArg, callInvokeWithMethodAndArg) : callInvokeWithMethodAndArg(); } }); } function makeInvokeMethod(innerFn, self, context) { var state = "suspendedStart"; return function (method, arg) { if ("executing" === state) throw new Error("Generator is already running"); if ("completed" === state) { if ("throw" === method) throw arg; return doneResult(); } for (context.method = method, context.arg = arg;;) { var delegate = context.delegate; if (delegate) { var delegateResult = maybeInvokeDelegate(delegate, context); if (delegateResult) { if (delegateResult === ContinueSentinel) continue; return delegateResult; } } if ("next" === context.method) context.sent = context._sent = context.arg;else if ("throw" === context.method) { if ("suspendedStart" === state) throw state = "completed", context.arg; context.dispatchException(context.arg); } else "return" === context.method && context.abrupt("return", context.arg); state = "executing"; var record = tryCatch(innerFn, self, context); if ("normal" === record.type) { if (state = context.done ? "completed" : "suspendedYield", record.arg === ContinueSentinel) continue; return { value: record.arg, done: context.done }; } "throw" === record.type && (state = "completed", context.method = "throw", context.arg = record.arg); } }; } function maybeInvokeDelegate(delegate, context) { var methodName = context.method, method = delegate.iterator[methodName]; if (undefined === method) return context.delegate = null, "throw" === methodName && delegate.iterator.return && (context.method = "return", context.arg = undefined, maybeInvokeDelegate(delegate, context), "throw" === context.method) || "return" !== methodName && (context.method = "throw", context.arg = new TypeError("The iterator does not provide a '" + methodName + "' method")), ContinueSentinel; var record = tryCatch(method, delegate.iterator, context.arg); if ("throw" === record.type) return context.method = "throw", context.arg = record.arg, context.delegate = null, ContinueSentinel; var info = record.arg; return info ? info.done ? (context[delegate.resultName] = info.value, context.next = delegate.nextLoc, "return" !== context.method && (context.method = "next", context.arg = undefined), context.delegate = null, ContinueSentinel) : info : (context.method = "throw", context.arg = new TypeError("iterator result is not an object"), context.delegate = null, ContinueSentinel); } function pushTryEntry(locs) { var entry = { tryLoc: locs[0] }; 1 in locs && (entry.catchLoc = locs[1]), 2 in locs && (entry.finallyLoc = locs[2], entry.afterLoc = locs[3]), this.tryEntries.push(entry); } function resetTryEntry(entry) { var record = entry.completion || {}; record.type = "normal", delete record.arg, entry.completion = record; } function Context(tryLocsList) { this.tryEntries = [{ tryLoc: "root" }], tryLocsList.forEach(pushTryEntry, this), this.reset(!0); } function values(iterable) { if (iterable) { var iteratorMethod = iterable[iteratorSymbol]; if (iteratorMethod) return iteratorMethod.call(iterable); if ("function" == typeof iterable.next) return iterable; if (!isNaN(iterable.length)) { var i = -1, next = function next() { for (; ++i < iterable.length;) if (hasOwn.call(iterable, i)) return next.value = iterable[i], next.done = !1, next; return next.value = undefined, next.done = !0, next; }; return next.next = next; } } return { next: doneResult }; } function doneResult() { return { value: undefined, done: !0 }; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, defineProperty(Gp, "constructor", { value: GeneratorFunctionPrototype, configurable: !0 }), defineProperty(GeneratorFunctionPrototype, "constructor", { value: GeneratorFunction, configurable: !0 }), GeneratorFunction.displayName = define(GeneratorFunctionPrototype, toStringTagSymbol, "GeneratorFunction"), exports.isGeneratorFunction = function (genFun) { var ctor = "function" == typeof genFun && genFun.constructor; return !!ctor && (ctor === GeneratorFunction || "GeneratorFunction" === (ctor.displayName || ctor.name)); }, exports.mark = function (genFun) { return Object.setPrototypeOf ? Object.setPrototypeOf(genFun, GeneratorFunctionPrototype) : (genFun.__proto__ = GeneratorFunctionPrototype, define(genFun, toStringTagSymbol, "GeneratorFunction")), genFun.prototype = Object.create(Gp), genFun; }, exports.awrap = function (arg) { return { __await: arg }; }, defineIteratorMethods(AsyncIterator.prototype), define(AsyncIterator.prototype, asyncIteratorSymbol, function () { return this; }), exports.AsyncIterator = AsyncIterator, exports.async = function (innerFn, outerFn, self, tryLocsList, PromiseImpl) { void 0 === PromiseImpl && (PromiseImpl = Promise); var iter = new AsyncIterator(wrap(innerFn, outerFn, self, tryLocsList), PromiseImpl); return exports.isGeneratorFunction(outerFn) ? iter : iter.next().then(function (result) { return result.done ? result.value : iter.next(); }); }, defineIteratorMethods(Gp), define(Gp, toStringTagSymbol, "Generator"), define(Gp, iteratorSymbol, function () { return this; }), define(Gp, "toString", function () { return "[object Generator]"; }), exports.keys = function (val) { var object = Object(val), keys = []; for (var key in object) keys.push(key); return keys.reverse(), function next() { for (; keys.length;) { var key = keys.pop(); if (key in object) return next.value = key, next.done = !1, next; } return next.done = !0, next; }; }, exports.values = values, Context.prototype = { constructor: Context, reset: function reset(skipTempReset) { if (this.prev = 0, this.next = 0, this.sent = this._sent = undefined, this.done = !1, this.delegate = null, this.method = "next", this.arg = undefined, this.tryEntries.forEach(resetTryEntry), !skipTempReset) for (var name in this) "t" === name.charAt(0) && hasOwn.call(this, name) && !isNaN(+name.slice(1)) && (this[name] = undefined); }, stop: function stop() { this.done = !0; var rootRecord = this.tryEntries[0].completion; if ("throw" === rootRecord.type) throw rootRecord.arg; return this.rval; }, dispatchException: function dispatchException(exception) { if (this.done) throw exception; var context = this; function handle(loc, caught) { return record.type = "throw", record.arg = exception, context.next = loc, caught && (context.method = "next", context.arg = undefined), !!caught; } for (var i = this.tryEntries.length - 1; i >= 0; --i) { var entry = this.tryEntries[i], record = entry.completion; if ("root" === entry.tryLoc) return handle("end"); if (entry.tryLoc <= this.prev) { var hasCatch = hasOwn.call(entry, "catchLoc"), hasFinally = hasOwn.call(entry, "finallyLoc"); if (hasCatch && hasFinally) { if (this.prev < entry.catchLoc) return handle(entry.catchLoc, !0); if (this.prev < entry.finallyLoc) return handle(entry.finallyLoc); } else if (hasCatch) { if (this.prev < entry.catchLoc) return handle(entry.catchLoc, !0); } else { if (!hasFinally) throw new Error("try statement without catch or finally"); if (this.prev < entry.finallyLoc) return handle(entry.finallyLoc); } } } }, abrupt: function abrupt(type, arg) { for (var i = this.tryEntries.length - 1; i >= 0; --i) { var entry = this.tryEntries[i]; if (entry.tryLoc <= this.prev && hasOwn.call(entry, "finallyLoc") && this.prev < entry.finallyLoc) { var finallyEntry = entry; break; } } finallyEntry && ("break" === type || "continue" === type) && finallyEntry.tryLoc <= arg && arg <= finallyEntry.finallyLoc && (finallyEntry = null); var record = finallyEntry ? finallyEntry.completion : {}; return record.type = type, record.arg = arg, finallyEntry ? (this.method = "next", this.next = finallyEntry.finallyLoc, ContinueSentinel) : this.complete(record); }, complete: function complete(record, afterLoc) { if ("throw" === record.type) throw record.arg; return "break" === record.type || "continue" === record.type ? this.next = record.arg : "return" === record.type ? (this.rval = this.arg = record.arg, this.method = "return", this.next = "end") : "normal" === record.type && afterLoc && (this.next = afterLoc), ContinueSentinel; }, finish: function finish(finallyLoc) { for (var i = this.tryEntries.length - 1; i >= 0; --i) { var entry = this.tryEntries[i]; if (entry.finallyLoc === finallyLoc) return this.complete(entry.completion, entry.afterLoc), resetTryEntry(entry), ContinueSentinel; } }, catch: function _catch(tryLoc) { for (var i = this.tryEntries.length - 1; i >= 0; --i) { var entry = this.tryEntries[i]; if (entry.tryLoc === tryLoc) { var record = entry.completion; if ("throw" === record.type) { var thrown = record.arg; resetTryEntry(entry); } return thrown; } } throw new Error("illegal catch attempt"); }, delegateYield: function delegateYield(iterable, resultName, nextLoc) { return this.delegate = { iterator: values(iterable), resultName: resultName, nextLoc: nextLoc }, "next" === this.method && (this.arg = undefined), ContinueSentinel; } }, exports; }
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
 var licenseKey = "dev_fbpjqcqmqji0bq6asinisgv2tzv6ybwaikbnzlw4";
+var heatmapInstance = _heatmap.default.create({
+  container: document.getElementById("heatMap")
+});
+function createHeatmap(gazeInfo) {
+  console.log(gazeInfo);
+  if (gazeInfo.x != NaN && gazeInfo.y != NaN && gazeInfo.x <= 1000 && gazeInfo.y <= 1000) {
+    heatmapInstance.addData({
+      x: gazeInfo.x,
+      y: gazeInfo.y,
+      value: 1
+    });
+  }
+}
 function onClickCalibrationBtn() {
   var userId = "YOUR_USER_ID";
   // Next Page after calibration
-  var redirectUrl = "http://localhost:8082/evaluate";
+  var redirectUrl = "http://localhost:8082";
   var calibrationPoint = 1;
   _easySeeso.default.openCalibrationPage(licenseKey, userId, redirectUrl, calibrationPoint);
 }
 function onClickNextBtn() {
-  window.location.replace('../evaluation/index.html');
+  // location.href = 'eval.html'
+  // createHeatmap();
+  // hideImage()
 }
 
 // in redirected page
@@ -1710,6 +2464,7 @@ function parseCalibrationDataInQueryString() {
 function onGaze(gazeInfo) {
   // do something with gaze info.
   (0, _showGaze.default)(gazeInfo);
+  createHeatmap(gazeInfo);
 }
 
 // debug callback.
@@ -1781,7 +2536,7 @@ _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee() {
     }
   }, _callee);
 }))();
-},{"regenerator-runtime/runtime":"../../../node_modules/regenerator-runtime/runtime.js","seeso/easy-seeso":"../../../node_modules/seeso/easy-seeso.js","../showGaze":"../showGaze.js"}],"../../../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"heatmap.js":"../../node_modules/heatmap.js/build/heatmap.js","regenerator-runtime/runtime":"../../node_modules/regenerator-runtime/runtime.js","seeso/easy-seeso":"../../node_modules/seeso/easy-seeso.js","../showGaze":"showGaze.js"}],"../../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -1806,7 +2561,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "57932" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "56250" + '/');
   ws.onmessage = function (event) {
     checkedAssets = {};
     assetsToAccept = [];
@@ -1950,5 +2705,5 @@ function hmrAcceptRun(bundle, id) {
     return true;
   }
 }
-},{}]},{},["../../../node_modules/parcel-bundler/src/builtins/hmr-runtime.js","index.js"], null)
-//# sourceMappingURL=/home.e31bb0bc.js.map
+},{}]},{},["../../node_modules/parcel-bundler/src/builtins/hmr-runtime.js","scripts/index.js"], null)
+//# sourceMappingURL=/scripts.bcf3243b.js.map
