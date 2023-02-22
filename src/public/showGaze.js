@@ -1,7 +1,4 @@
 // helper functions to display gaze information and dot in browser.
-import h337 from 'heatmap.js'
-
-let gazeData = []
 
 // show gaze information on screen.
 function showGazeInfoOnDom(gazeInfo) {
@@ -26,16 +23,18 @@ function showGazeDotOnDom(gazeInfo) {
 }
 
 
-function hideUi() {
+function changeDOM() {
   document.getElementById("gazeheader").style.display = "none";
   document.getElementById("gazeInfo").style.display = "none";
   document.getElementById("calibrationButton").style.display = "none";
+  document.getElementById("myimg").style.display = "block";
+  document.getElementById("finBtn").style.display = "block";
+  
 }
 
 function showGaze(gazeInfo) {
-  hideUi();
-  showGazeInfoOnDom(gazeInfo);
-//   showGazeDotOnDom(gazeInfo);
+  changeDOM();
+  // showGazeInfoOnDom(gazeInfo);
 }
 
 export default showGaze;

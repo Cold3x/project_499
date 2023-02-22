@@ -3,23 +3,31 @@ import "regenerator-runtime/runtime";
 import EasySeeSo from "seeso/easy-seeso";
 import showGaze from "../showGaze";
 import h337 from "heatmap.js";
+import "html2canvas";
+import html2canvas from "html2canvas";
 
 const licenseKey = "dev_fbpjqcqmqji0bq6asinisgv2tzv6ybwaikbnzlw4";
+const dataset = []
 
 var heatmapInstance = h337.create({
   container: document.getElementById("heatMap"),
+  gradient: {
+    '.25': 'blue',
+    '.5': 'green',
+    '.75': 'yellow',
+    '.9': 'red'
+  }
 });
 
 function createHeatmap(gazeInfo) {
-  console.log(gazeInfo);
-  if (gazeInfo.x != NaN && gazeInfo.y != NaN && gazeInfo.x <= 1000 && gazeInfo.y <= 1000) {
-    heatmapInstance.addData(
-      {
-        x: gazeInfo.x,
-        y: gazeInfo.y,
-        value: 1
-      }
-    )
+  // console.log(gazeInfo);
+  heatmapInstance.setDataMax(100)
+  if (gazeInfo.trackingState < 2 && gazeInfo.eyemovementState < 3) {
+        dataset.push({
+          x: gazeInfo.x,
+          y: gazeInfo.y,
+          value: 25
+        })
   }
 }
 
@@ -27,7 +35,7 @@ function onClickCalibrationBtn() {
   const userId = "YOUR_USER_ID";
   // Next Page after calibration
   const redirectUrl = "http://localhost:8082";
-  const calibrationPoint = 1;
+  const calibrationPoint = 5;
   EasySeeSo.openCalibrationPage(
     licenseKey,
     userId,
@@ -37,10 +45,30 @@ function onClickCalibrationBtn() {
 }
 
 function onClickNextBtn() {
-  // location.href = 'eval.html'
-  // createHeatmap();
-  // hideImage()
+  heatmapInstance.setData({
+    max: 100,
+    min: 10,
+    data: dataset
+  })
+  // Show Btn
+  document.getElementById("finBtn").style.display = "none";
+  document.getElementById("saveBtn").style.display = "block";
+  document.getElementById("compBtn").style.display = "block";
 }
+
+function onClickSave(){
+  let screenshot = document.getElementById('heatMap');
+  html2canvas(screenshot).then((canvas)=>{
+    const a = document.createElement("a");
+        a.href = canvas.toDataURL();
+        a.download = "heatmap_" + new Date().toJSON().slice(0,10) + "_screenshot.jpg";
+        a.click();
+  })
+}
+function onClickComp(){
+  location.href = "../"
+}
+
 
 // in redirected page
 function parseCalibrationDataInQueryString() {
@@ -80,13 +108,23 @@ async function main() {
       }, // callback when init succeeded.
       () => console.log("callback when init failed.") // callback when init failed.
     );
-    const nextButton = document.getElementById("nextButton");
-    nextButton.addEventListener("click", onClickNextBtn);
+    const finButton = document.getElementById("finBtn");
+    finButton.addEventListener("click", () => {
+      console.log("stop tracking");
+      onClickNextBtn();
+      seeSo.stopTracking();
+    });
   } else {
     console.log("No calibration data given.");
     const calibrationButton = document.getElementById("calibrationButton");
     calibrationButton.addEventListener("click", onClickCalibrationBtn);
   }
+  const saveButton = document.getElementById("saveBtn");
+    saveButton.addEventListener("click", onClickSave);
+
+  const compButton = document.getElementById("compBtn");
+    compButton.addEventListener("click", onClickComp);
+
 }
 
 (async () => {

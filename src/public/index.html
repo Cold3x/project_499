@@ -7,33 +7,39 @@
   </head>
 
   <body>
-    <div id="heatMap" style="position: relative; height: 1000px; width: 1000px;">
-      <!-- <canvas
-        class="heatmap-canvas"
-        width="835"
-        height="400"
-        style="position: absolute; left: 0px; top: 0px;"
-      ></canvas> -->
+    <div
+      id="heatMap"
+      style="
+        position: absolute;
+        height: 90vh;
+        width: 100vw;
+      "
+    >
+      <h1 id="gazeheader" style="text-align: center; z-index: -1">
+        Calibration Service
+      </h1>
+      <h2 id="gazeInfo" style="text-align: center"></h2>
+      <img
+        id="myimg"
+        src="../assets/trail-making.png"
+        alt=""
+        style="object-fit: scale-down; display: none"
+        class="center"
+      />
+      <div id="buttons" class="container">
+        <button id="calibrationButton" style="left: 0; right: 0">
+          Click me to use calibration service
+        </button>
+      </div>
     </div>
 
     <!-- <canvas id="output" style="position: fixed"></canvas> -->
-    <h1 id="gazeheader" style="text-align: center; z-index: -1">
-      Calibration Service
-    </h1>
-    <h2 id="gazeInfo" style="text-align: center"></h2>
-    <!-- <img
-          id="myimg"
-          src="../assets/trail-making-crop.png"
-          alt=""
-          style="display: none; object-fit: scale-down"
-          class="center"
-        /> -->
-    <div id="buttons" class="container">
-      <button id="calibrationButton" style="left: 0; right: 0">
-        Click me to use calibration service
-      </button>
-      <button id="nextButton" type="button">Next Page</button>
-      <script src="./scripts/index.js"></script>
+    <div class="container">
+      <button id="finBtn" type="button" style="display: none;">Finish</button>
+      <button id="saveBtn" type="button" style="display: none;">Save</button>
+      <button id="compBtn" type="button" style="display: none;">Complete</button>
     </div>
+
+    <script src="./scripts/index.js"></script>
   </body>
 </html>
