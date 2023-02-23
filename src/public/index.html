@@ -2,7 +2,7 @@
 <html class="no-js" lang="">
   <head>
     <meta charset="utf-8" />
-    <title>SeeSo Web Sample</title>
+    <title>Project</title>
     <link rel="stylesheet" href="../css/main.css" />
   </head>
 
@@ -10,13 +10,12 @@
     <div
       id="heatMap"
       style="
-        position: absolute;
-        height: 90vh;
-        width: 100vw;
+        position: relative;
+        height: 100vh;
       "
     >
       <h1 id="gazeheader" style="text-align: center; z-index: -1">
-        Calibration Service
+        ระบบช่วยประเมินภาวะความจำเสื่อมโดยเทคนิดการติดตามดวงตา
       </h1>
       <h2 id="gazeInfo" style="text-align: center"></h2>
       <img
@@ -28,13 +27,12 @@
       />
       <div id="buttons" class="container">
         <button id="calibrationButton" style="left: 0; right: 0">
-          Click me to use calibration service
+          Start
         </button>
       </div>
     </div>
 
-    <!-- <canvas id="output" style="position: fixed"></canvas> -->
-    <div class="container">
+    <div class="container" style="margin-top: 20px;">
       <button id="finBtn" type="button" style="display: none;">Finish</button>
       <button id="saveBtn" type="button" style="display: none;">Save</button>
       <button id="compBtn" type="button" style="display: none;">Complete</button>

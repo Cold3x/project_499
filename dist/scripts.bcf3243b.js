@@ -2383,7 +2383,7 @@ function showGazeInfoOnDom(gazeInfo) {
 
 // show gaze dot on screen.
 function showGazeDotOnDom(gazeInfo) {
-  var canvas = document.getElementById("output");
+  var canvas = document.getElementById("heatMap");
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
   var ctx = canvas.getContext("2d");
@@ -2402,6 +2402,7 @@ function changeDOM() {
 }
 function showGaze(gazeInfo) {
   changeDOM();
+  // showGazeDotOnDom(gazeInfo);
   // showGazeInfoOnDom(gazeInfo);
 }
 var _default = showGaze;
@@ -10244,6 +10245,17 @@ function createHeatmap(gazeInfo) {
     });
   }
 }
+function createHM(gazeInfo) {
+  // console.log(gazeInfo);
+  heatmapInstance.setDataMax(100);
+  if (gazeInfo.trackingState < 2 && gazeInfo.eyemovementState < 3) {
+    heatmapInstance.addData({
+      x: gazeInfo.x,
+      y: gazeInfo.y,
+      value: 25
+    });
+  }
+}
 function onClickCalibrationBtn() {
   var userId = "YOUR_USER_ID";
   // Next Page after calibration
@@ -10252,6 +10264,7 @@ function onClickCalibrationBtn() {
   _easySeeso.default.openCalibrationPage(licenseKey, userId, redirectUrl, calibrationPoint);
 }
 function onClickNextBtn() {
+  console.log(dataset);
   heatmapInstance.setData({
     max: 100,
     min: 10,
@@ -10289,6 +10302,7 @@ function parseCalibrationDataInQueryString() {
 function onGaze(gazeInfo) {
   // do something with gaze info.
   (0, _showGaze.default)(gazeInfo);
+  createHM(gazeInfo);
   createHeatmap(gazeInfo);
 }
 
@@ -10395,7 +10409,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "59106" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "60154" + '/');
   ws.onmessage = function (event) {
     checkedAssets = {};
     assetsToAccept = [];

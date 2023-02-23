@@ -14,9 +14,10 @@ body {
   align-items: center;
 }
 button {
-  /*background-color: lightblue;*/
+  background-color: lightblue;
   color: black;
   font-size: 25px;
+  margin-left: 25px;
 }
 
 .center {

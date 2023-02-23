@@ -30,6 +30,17 @@ function createHeatmap(gazeInfo) {
         })
   }
 }
+function createHM(gazeInfo) {
+  // console.log(gazeInfo);
+  heatmapInstance.setDataMax(100)
+  if (gazeInfo.trackingState < 2 && gazeInfo.eyemovementState < 3) {
+        heatmapInstance.addData({
+          x: gazeInfo.x,
+          y: gazeInfo.y,
+          value: 25
+        })
+  }
+}
 
 function onClickCalibrationBtn() {
   const userId = "YOUR_USER_ID";
@@ -45,6 +56,7 @@ function onClickCalibrationBtn() {
 }
 
 function onClickNextBtn() {
+  console.log(dataset);
   heatmapInstance.setData({
     max: 100,
     min: 10,
@@ -87,6 +99,7 @@ function parseCalibrationDataInQueryString() {
 function onGaze(gazeInfo) {
   // do something with gaze info.
   showGaze(gazeInfo);
+  createHM(gazeInfo)
   createHeatmap(gazeInfo);
 }
 
