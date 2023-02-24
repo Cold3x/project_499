@@ -2395,9 +2395,9 @@ function showGazeDotOnDom(gazeInfo) {
 }
 function changeDOM() {
   document.getElementById("gazeheader").style.display = "none";
-  document.getElementById("gazeInfo").style.display = "none";
   document.getElementById("calibrationButton").style.display = "none";
-  document.getElementById("myimg").style.display = "block";
+  // document.getElementById("myimg").style.display = "block";
+  document.getElementById("heatMap").style.display = "block";
   document.getElementById("finBtn").style.display = "block";
 }
 function showGaze(gazeInfo) {
@@ -10228,10 +10228,10 @@ var dataset = [];
 var heatmapInstance = _heatmap.default.create({
   container: document.getElementById("heatMap"),
   gradient: {
-    '.25': 'blue',
-    '.5': 'green',
-    '.75': 'yellow',
-    '.9': 'red'
+    ".25": "blue",
+    ".5": "green",
+    ".75": "yellow",
+    ".9": "red"
   }
 });
 function createHeatmap(gazeInfo) {
@@ -10246,15 +10246,20 @@ function createHeatmap(gazeInfo) {
   }
 }
 function createHM(gazeInfo) {
-  // console.log(gazeInfo);
   heatmapInstance.setDataMax(100);
-  if (gazeInfo.trackingState < 2 && gazeInfo.eyemovementState < 3) {
-    heatmapInstance.addData({
-      x: gazeInfo.x,
-      y: gazeInfo.y,
-      value: 25
-    });
-  }
+  // if(gazeInfo.trackingState === 0 && gazeInfo.eyemovementState != 3){
+  //   console.log(gazeInfo);
+  //   heatmapInstance.addData({
+  //     x: gazeInfo.x,
+  //     y: gazeInfo.y,
+  //     value: 25,
+  //   });
+  // }
+  heatmapInstance.addData({
+    x: gazeInfo.x,
+    y: gazeInfo.y,
+    value: 25
+  });
 }
 function onClickCalibrationBtn() {
   var userId = "YOUR_USER_ID";
@@ -10276,7 +10281,7 @@ function onClickNextBtn() {
   document.getElementById("compBtn").style.display = "block";
 }
 function onClickSave() {
-  var screenshot = document.getElementById('heatMap');
+  var screenshot = document.getElementById("heatMap");
   (0, _html2canvas.default)(screenshot).then(function (canvas) {
     var a = document.createElement("a");
     a.href = canvas.toDataURL();
@@ -10331,10 +10336,10 @@ function _main() {
               while (1) switch (_context2.prev = _context2.next) {
                 case 0:
                   _context2.next = 2;
-                  return seeSo.startTracking(onGaze, onDebug);
+                  return seeSo.setCalibrationData(calibrationData);
                 case 2:
                   _context2.next = 4;
-                  return seeSo.setCalibrationData(calibrationData);
+                  return seeSo.startTracking(onGaze, onDebug);
                 case 4:
                 case "end":
                   return _context2.stop();
@@ -10409,7 +10414,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "60154" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "51459" + '/');
   ws.onmessage = function (event) {
     checkedAssets = {};
     assetsToAccept = [];

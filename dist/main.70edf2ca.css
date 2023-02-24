@@ -1,12 +1,17 @@
 
-canvas {
+/* canvas {
   pointer-events:none;
   position: fixed;
   z-index:-1
+} */
+
+.heatmap-canvas {
+  position: absolute;
+  z-index: -1;
 }
 
 body {
-
+  margin: 0;
 }
 .container {
   display: flex;

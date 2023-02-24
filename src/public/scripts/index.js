@@ -7,39 +7,44 @@ import "html2canvas";
 import html2canvas from "html2canvas";
 
 const licenseKey = "dev_fbpjqcqmqji0bq6asinisgv2tzv6ybwaikbnzlw4";
-const dataset = []
+const dataset = [];
 
 var heatmapInstance = h337.create({
   container: document.getElementById("heatMap"),
   gradient: {
-    '.25': 'blue',
-    '.5': 'green',
-    '.75': 'yellow',
-    '.9': 'red'
-  }
+    ".25": "blue",
+    ".5": "green",
+    ".75": "yellow",
+    ".9": "red",
+  },
 });
 
 function createHeatmap(gazeInfo) {
   // console.log(gazeInfo);
-  heatmapInstance.setDataMax(100)
+  heatmapInstance.setDataMax(100);
   if (gazeInfo.trackingState < 2 && gazeInfo.eyemovementState < 3) {
-        dataset.push({
-          x: gazeInfo.x,
-          y: gazeInfo.y,
-          value: 25
-        })
+    dataset.push({
+      x: gazeInfo.x,
+      y: gazeInfo.y,
+      value: 25,
+    });
   }
 }
 function createHM(gazeInfo) {
-  // console.log(gazeInfo);
-  heatmapInstance.setDataMax(100)
-  if (gazeInfo.trackingState < 2 && gazeInfo.eyemovementState < 3) {
-        heatmapInstance.addData({
-          x: gazeInfo.x,
-          y: gazeInfo.y,
-          value: 25
-        })
-  }
+  heatmapInstance.setDataMax(100);
+  // if(gazeInfo.trackingState === 0 && gazeInfo.eyemovementState != 3){
+  //   console.log(gazeInfo);
+  //   heatmapInstance.addData({
+  //     x: gazeInfo.x,
+  //     y: gazeInfo.y,
+  //     value: 25,
+  //   });
+  // }
+  heatmapInstance.addData({
+    x: gazeInfo.x,
+    y: gazeInfo.y,
+    value: 25,
+  });
 }
 
 function onClickCalibrationBtn() {
@@ -60,27 +65,27 @@ function onClickNextBtn() {
   heatmapInstance.setData({
     max: 100,
     min: 10,
-    data: dataset
-  })
+    data: dataset,
+  });
   // Show Btn
   document.getElementById("finBtn").style.display = "none";
   document.getElementById("saveBtn").style.display = "block";
   document.getElementById("compBtn").style.display = "block";
 }
 
-function onClickSave(){
-  let screenshot = document.getElementById('heatMap');
-  html2canvas(screenshot).then((canvas)=>{
+function onClickSave() {
+  let screenshot = document.getElementById("heatMap");
+  html2canvas(screenshot).then((canvas) => {
     const a = document.createElement("a");
-        a.href = canvas.toDataURL();
-        a.download = "heatmap_" + new Date().toJSON().slice(0,10) + "_screenshot.jpg";
-        a.click();
-  })
+    a.href = canvas.toDataURL();
+    a.download =
+      "heatmap_" + new Date().toJSON().slice(0, 10) + "_screenshot.jpg";
+    a.click();
+  });
 }
-function onClickComp(){
-  location.href = "../"
+function onClickComp() {
+  location.href = "../";
 }
-
 
 // in redirected page
 function parseCalibrationDataInQueryString() {
@@ -99,7 +104,7 @@ function parseCalibrationDataInQueryString() {
 function onGaze(gazeInfo) {
   // do something with gaze info.
   showGaze(gazeInfo);
-  createHM(gazeInfo)
+  createHM(gazeInfo);
   createHeatmap(gazeInfo);
 }
 
@@ -116,8 +121,8 @@ async function main() {
     await seeSo.init(
       licenseKey,
       async () => {
-        await seeSo.startTracking(onGaze, onDebug);
         await seeSo.setCalibrationData(calibrationData);
+        await seeSo.startTracking(onGaze, onDebug);
       }, // callback when init succeeded.
       () => console.log("callback when init failed.") // callback when init failed.
     );
@@ -133,11 +138,10 @@ async function main() {
     calibrationButton.addEventListener("click", onClickCalibrationBtn);
   }
   const saveButton = document.getElementById("saveBtn");
-    saveButton.addEventListener("click", onClickSave);
+  saveButton.addEventListener("click", onClickSave);
 
   const compButton = document.getElementById("compBtn");
-    compButton.addEventListener("click", onClickComp);
-
+  compButton.addEventListener("click", onClickComp);
 }
 
 (async () => {
