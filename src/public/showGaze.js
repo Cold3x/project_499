@@ -26,7 +26,7 @@ function showGazeDotOnDom(gazeInfo) {
 function changeDOM() {
   document.getElementById("gazeheader").style.display = "none";
   document.getElementById("calibrationButton").style.display = "none";
-  // document.getElementById("myimg").style.display = "block";
+  document.getElementById("detail").style.display = "none";
   document.getElementById("heatMap").style.display = "block";
   document.getElementById("finBtn").style.display = "block";
   

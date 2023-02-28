@@ -2396,7 +2396,7 @@ function showGazeDotOnDom(gazeInfo) {
 function changeDOM() {
   document.getElementById("gazeheader").style.display = "none";
   document.getElementById("calibrationButton").style.display = "none";
-  // document.getElementById("myimg").style.display = "block";
+  document.getElementById("detail").style.display = "none";
   document.getElementById("heatMap").style.display = "block";
   document.getElementById("finBtn").style.display = "block";
 }
@@ -10414,7 +10414,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "51459" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "49737" + '/');
   ws.onmessage = function (event) {
     checkedAssets = {};
     assetsToAccept = [];
