@@ -4,13 +4,7 @@
   "description": "A JavaScript project",
   "main": "./dist/index.js",
   "scripts": {
-    "dev:watch": "node ./node_modules/parcel-bundler/bin/cli watch ./src/index.js --target node",
-    "dev:hot-reload": "node ./node_modules/nodemon/bin/nodemon --watch ./dist/ ./dist/index.js",
-    "start": "node ./node_modules/npm-run-all/bin/npm-run-all -p -r dev:watch dev:hot-reload",
-    "build": "node ./node_modules/parcel-bundler/bin/cli build ./src/index.js --target node --out-dir ./build/",
-    "lint": "node ./node_modules/eslint/bin/eslint . --ext .js --fix",
-    "project": "cross-env NODE_ENV=development node src/index.js",
-    "gaze": "cross-env NODE_ENV=development node src/index.js src/public/home/index.html 8082"
+    "project": "cross-env NODE_ENV=development node src/index.js"
   },
   "repository": {
     "type": "git",

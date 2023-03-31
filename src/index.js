@@ -32,5 +32,5 @@ server.on('listening', () => {
     console.info('Server is running');
     console.info(`  NODE_ENV=[${process.env.NODE_ENV}]`);
     console.info(`  Port=[${port}]`);
-    open(`http://localhost:${port}`);
+    // open(`http://localhost:${port}`);
 });
