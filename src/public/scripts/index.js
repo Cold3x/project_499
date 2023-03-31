@@ -6,7 +6,7 @@ import h337 from "heatmap.js";
 import "html2canvas";
 import html2canvas from "html2canvas";
 
-const licenseKey = "dev_fbpjqcqmqji0bq6asinisgv2tzv6ybwaikbnzlw4";
+const licenseKey = "dev_jtbhyyx8sw8v5xp64hftj9lqvs0t0pbw9smwopak";
 const dataset = [];
 
 var heatmapInstance = h337.create({
