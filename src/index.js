@@ -16,13 +16,16 @@ app.use((req, res, next) => {
     next()
 })
 
-// src/public/home/index.html
-// 8082
 const port = 8082
 const bundler = new Bundler(bundlePath);
 
 app.use(bundler.middleware());
 // app.use(router)
+
+app.use(express.static("public"))
+
+
+
 
 const server = http.createServer(app);
 server.listen(port);
@@ -32,5 +35,5 @@ server.on('listening', () => {
     console.info('Server is running');
     console.info(`  NODE_ENV=[${process.env.NODE_ENV}]`);
     console.info(`  Port=[${port}]`);
-    // open(`http://localhost:${port}`);
+    open(`http://localhost:${port}`);
 });
