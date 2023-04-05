@@ -52,7 +52,7 @@ function onClickCalibrationBtn() {
   // Next Page after calibration
   const redirectUrl = "https://project-eyetrack.onrender.com";
   // const redirectUrl = "http://localhost:8082/";
-  const calibrationPoint = 1;
+  const calibrationPoint = 5;
   EasySeeSo.openCalibrationPage(
     licenseKey,
     userId,
