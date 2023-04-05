@@ -2394,9 +2394,9 @@ function showGazeDotOnDom(gazeInfo) {
   ctx.fill();
 }
 function changeDOM() {
-  document.getElementById("gazeheader").style.display = "none";
-  document.getElementById("calibrationButton").style.display = "none";
-  document.getElementById("detail").style.display = "none";
+  // document.getElementById("gazeheader").style.display = "none";
+  // document.getElementById("calibrationButton").style.display = "none";
+  // document.getElementById("detail").style.display = "none";
   document.getElementById("heatMap").style.display = "block";
   document.getElementById("finBtn").style.display = "block";
 }
@@ -10264,8 +10264,9 @@ function createHM(gazeInfo) {
 function onClickCalibrationBtn() {
   var userId = "YOUR_USER_ID";
   // Next Page after calibration
-  var redirectUrl = "http://localhost:8082";
-  var calibrationPoint = 5;
+  var redirectUrl = "https://project-eyetrack.onrender.com";
+  // const redirectUrl = "http://localhost:8082/";
+  var calibrationPoint = 1;
   _easySeeso.default.openCalibrationPage(licenseKey, userId, redirectUrl, calibrationPoint);
 }
 function onClickNextBtn() {
@@ -10290,6 +10291,7 @@ function onClickSave() {
   });
 }
 function onClickComp() {
+  document.getElementById("instruction").style.display = "contents";
   location.href = "../";
 }
 
@@ -10414,7 +10416,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "64606" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "50179" + '/');
   ws.onmessage = function (event) {
     checkedAssets = {};
     assetsToAccept = [];

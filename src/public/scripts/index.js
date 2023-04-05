@@ -51,13 +51,15 @@ function onClickCalibrationBtn() {
   const userId = "YOUR_USER_ID";
   // Next Page after calibration
   const redirectUrl = "https://project-eyetrack.onrender.com";
-  const calibrationPoint = 5;
+  // const redirectUrl = "http://localhost:8082/";
+  const calibrationPoint = 1;
   EasySeeSo.openCalibrationPage(
     licenseKey,
     userId,
     redirectUrl,
     calibrationPoint
   );
+  
 }
 
 function onClickNextBtn() {
@@ -84,6 +86,7 @@ function onClickSave() {
   });
 }
 function onClickComp() {
+  document.getElementById("instruction").style.display = "contents";
   location.href = "../";
 }
 
@@ -115,7 +118,6 @@ function onDebug(FPS, latency_min, latency_max, latency_avg) {
 
 async function main() {
   const calibrationData = parseCalibrationDataInQueryString();
-
   if (calibrationData) {
     const seeSo = new EasySeeSo();
     await seeSo.init(
@@ -147,3 +149,4 @@ async function main() {
 (async () => {
   await main();
 })();
+
