@@ -2400,7 +2400,7 @@ function changeDOM() {
   document.getElementById("heatMap").style.display = "block";
   document.getElementById("finBtn").style.display = "block";
 }
-function showGaze(gazeInfo) {
+function showGaze() {
   changeDOM();
   // showGazeDotOnDom(gazeInfo);
   // showGazeInfoOnDom(gazeInfo);
@@ -10247,29 +10247,30 @@ function createHeatmap(gazeInfo) {
 }
 function createHM(gazeInfo) {
   heatmapInstance.setDataMax(100);
-  // if(gazeInfo.trackingState === 0 && gazeInfo.eyemovementState != 3){
-  //   console.log(gazeInfo);
-  //   heatmapInstance.addData({
-  //     x: gazeInfo.x,
-  //     y: gazeInfo.y,
-  //     value: 25,
-  //   });
-  // }
-  heatmapInstance.addData({
-    x: gazeInfo.x,
-    y: gazeInfo.y,
-    value: 25
-  });
+  if (gazeInfo.trackingState === 0 && gazeInfo.eyemovementState != 3) {
+    console.log(gazeInfo);
+    heatmapInstance.addData({
+      x: gazeInfo.x,
+      y: gazeInfo.y,
+      value: 25
+    });
+  }
+  // heatmapInstance.addData({
+  //   x: gazeInfo.x,
+  //   y: gazeInfo.y,
+  //   value: 25,
+  // });
 }
+
 function onClickCalibrationBtn() {
   var userId = "YOUR_USER_ID";
   // Next Page after calibration
-  var redirectUrl = "https://project-eyetrack.onrender.com";
-  // const redirectUrl = "http://localhost:8082/";
-  var calibrationPoint = 1;
+  // const redirectUrl = "https://project-eyetrack.onrender.com";
+  var redirectUrl = "http://localhost:8082/";
+  var calibrationPoint = 5;
   _easySeeso.default.openCalibrationPage(licenseKey, userId, redirectUrl, calibrationPoint);
 }
-function onClickNextBtn() {
+function onClickFinishBtn() {
   console.log(dataset);
   heatmapInstance.setData({
     max: 100,
@@ -10308,7 +10309,6 @@ function parseCalibrationDataInQueryString() {
 // gaze callback.
 function onGaze(gazeInfo) {
   // do something with gaze info.
-  (0, _showGaze.default)(gazeInfo);
   createHM(gazeInfo);
   createHeatmap(gazeInfo);
 }
@@ -10328,11 +10328,12 @@ function _main() {
         case 0:
           calibrationData = parseCalibrationDataInQueryString();
           if (!calibrationData) {
-            _context3.next = 9;
+            _context3.next = 10;
             break;
           }
+          (0, _showGaze.default)();
           seeSo = new _easySeeso.default();
-          _context3.next = 5;
+          _context3.next = 6;
           return seeSo.init(licenseKey, /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2() {
             return _regeneratorRuntime().wrap(function _callee2$(_context2) {
               while (1) switch (_context2.prev = _context2.next) {
@@ -10353,25 +10354,25 @@ function _main() {
             return console.log("callback when init failed.");
           } // callback when init failed.
           );
-        case 5:
+        case 6:
           finButton = document.getElementById("finBtn");
           finButton.addEventListener("click", function () {
             console.log("stop tracking");
-            onClickNextBtn();
+            onClickFinishBtn();
             seeSo.stopTracking();
           });
-          _context3.next = 12;
+          _context3.next = 13;
           break;
-        case 9:
+        case 10:
           console.log("No calibration data given.");
           calibrationButton = document.getElementById("calibrationButton");
           calibrationButton.addEventListener("click", onClickCalibrationBtn);
-        case 12:
+        case 13:
           saveButton = document.getElementById("saveBtn");
           saveButton.addEventListener("click", onClickSave);
           compButton = document.getElementById("compBtn");
           compButton.addEventListener("click", onClickComp);
-        case 16:
+        case 17:
         case "end":
           return _context3.stop();
       }
@@ -10416,7 +10417,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "50179" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "50579" + '/');
   ws.onmessage = function (event) {
     checkedAssets = {};
     assetsToAccept = [];

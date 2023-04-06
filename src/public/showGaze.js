@@ -32,7 +32,7 @@ function changeDOM() {
   
 }
 
-function showGaze(gazeInfo) {
+function showGaze() {
   changeDOM();
   // showGazeDotOnDom(gazeInfo);
   // showGazeInfoOnDom(gazeInfo);

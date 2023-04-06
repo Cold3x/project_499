@@ -32,26 +32,26 @@ function createHeatmap(gazeInfo) {
 }
 function createHM(gazeInfo) {
   heatmapInstance.setDataMax(100);
-  // if(gazeInfo.trackingState === 0 && gazeInfo.eyemovementState != 3){
-  //   console.log(gazeInfo);
-  //   heatmapInstance.addData({
-  //     x: gazeInfo.x,
-  //     y: gazeInfo.y,
-  //     value: 25,
-  //   });
-  // }
-  heatmapInstance.addData({
-    x: gazeInfo.x,
-    y: gazeInfo.y,
-    value: 25,
-  });
+  if(gazeInfo.trackingState === 0 && gazeInfo.eyemovementState != 3){
+    console.log(gazeInfo);
+    heatmapInstance.addData({
+      x: gazeInfo.x,
+      y: gazeInfo.y,
+      value: 25,
+    });
+  }
+  // heatmapInstance.addData({
+  //   x: gazeInfo.x,
+  //   y: gazeInfo.y,
+  //   value: 25,
+  // });
 }
 
 function onClickCalibrationBtn() {
   const userId = "YOUR_USER_ID";
   // Next Page after calibration
-  const redirectUrl = "https://project-eyetrack.onrender.com";
-  // const redirectUrl = "http://localhost:8082/";
+  // const redirectUrl = "https://project-eyetrack.onrender.com";
+  const redirectUrl = "http://localhost:8082/";
   const calibrationPoint = 5;
   EasySeeSo.openCalibrationPage(
     licenseKey,
@@ -62,7 +62,7 @@ function onClickCalibrationBtn() {
   
 }
 
-function onClickNextBtn() {
+function onClickFinishBtn() {
   console.log(dataset);
   heatmapInstance.setData({
     max: 100,
@@ -106,7 +106,6 @@ function parseCalibrationDataInQueryString() {
 // gaze callback.
 function onGaze(gazeInfo) {
   // do something with gaze info.
-  showGaze(gazeInfo);
   createHM(gazeInfo);
   createHeatmap(gazeInfo);
 }
@@ -119,6 +118,7 @@ function onDebug(FPS, latency_min, latency_max, latency_avg) {
 async function main() {
   const calibrationData = parseCalibrationDataInQueryString();
   if (calibrationData) {
+    showGaze();
     const seeSo = new EasySeeSo();
     await seeSo.init(
       licenseKey,
@@ -131,7 +131,7 @@ async function main() {
     const finButton = document.getElementById("finBtn");
     finButton.addEventListener("click", () => {
       console.log("stop tracking");
-      onClickNextBtn();
+      onClickFinishBtn();
       seeSo.stopTracking();
     });
   } else {
