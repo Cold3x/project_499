@@ -50,8 +50,8 @@ function createHM(gazeInfo) {
 function onClickCalibrationBtn() {
   const userId = "YOUR_USER_ID";
   // Next Page after calibration
-  // const redirectUrl = "https://project-eyetrack.onrender.com";
-  const redirectUrl = "http://localhost:8082/";
+  const redirectUrl = "https://project-eyetrack.onrender.com";
+  // const redirectUrl = "http://localhost:8082/";
   const calibrationPoint = 5;
   EasySeeSo.openCalibrationPage(
     licenseKey,
