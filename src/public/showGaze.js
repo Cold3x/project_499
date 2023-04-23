@@ -11,7 +11,7 @@ function showGazeInfoOnDom(gazeInfo) {
 
 // show gaze dot on screen.
 function showGazeDotOnDom(gazeInfo) {
-  let canvas = document.getElementById("heatMap");
+  let canvas = document.getElementById("canvas");
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
   let ctx = canvas.getContext("2d");
@@ -32,7 +32,7 @@ function changeDOM() {
   
 }
 
-function showGaze() {
+function showGaze(gazeInfo) {
   changeDOM();
   // showGazeDotOnDom(gazeInfo);
   // showGazeInfoOnDom(gazeInfo);

@@ -6,7 +6,7 @@ import h337 from "heatmap.js";
 import "html2canvas";
 import html2canvas from "html2canvas";
 
-const licenseKey = "dev_jtbhyyx8sw8v5xp64hftj9lqvs0t0pbw9smwopak";
+const licenseKey = "dev_z1czcp9czegq1dcqjukx5ptw7rcthgz4lwtyows9";
 const dataset = [];
 
 var heatmapInstance = h337.create({
@@ -106,6 +106,7 @@ function parseCalibrationDataInQueryString() {
 // gaze callback.
 function onGaze(gazeInfo) {
   // do something with gaze info.
+  showGaze(gazeInfo);
   createHM(gazeInfo);
   createHeatmap(gazeInfo);
 }
@@ -118,7 +119,6 @@ function onDebug(FPS, latency_min, latency_max, latency_avg) {
 async function main() {
   const calibrationData = parseCalibrationDataInQueryString();
   if (calibrationData) {
-    showGaze();
     const seeSo = new EasySeeSo();
     await seeSo.init(
       licenseKey,
