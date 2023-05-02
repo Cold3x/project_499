@@ -10225,6 +10225,10 @@ function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
 var licenseKey = "dev_z1czcp9czegq1dcqjukx5ptw7rcthgz4lwtyows9";
 var dataset = [];
+var userId = "YOUR_USER_ID";
+var redirectUrl = "https://project-eyetrack.onrender.com";
+// const redirectUrl = "http://localhost:8082/";
+var calibrationPoint = 5;
 var heatmapInstance = _heatmap.default.create({
   container: document.getElementById("heatMap"),
   gradient: {
@@ -10263,11 +10267,6 @@ function createHM(gazeInfo) {
 }
 
 function onClickCalibrationBtn() {
-  var userId = "YOUR_USER_ID";
-  // Next Page after calibration
-  var redirectUrl = "https://project-eyetrack.onrender.com";
-  // const redirectUrl = "http://localhost:8082/";
-  var calibrationPoint = 5;
   _easySeeso.default.openCalibrationPage(licenseKey, userId, redirectUrl, calibrationPoint);
 }
 function onClickFinishBtn() {
@@ -10417,7 +10416,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "55532" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "63905" + '/');
   ws.onmessage = function (event) {
     checkedAssets = {};
     assetsToAccept = [];

@@ -8,6 +8,10 @@ import html2canvas from "html2canvas";
 
 const licenseKey = "dev_z1czcp9czegq1dcqjukx5ptw7rcthgz4lwtyows9";
 const dataset = [];
+const userId = "YOUR_USER_ID";
+const redirectUrl = "https://project-eyetrack.onrender.com";
+// const redirectUrl = "http://localhost:8082/";
+const calibrationPoint = 5;
 
 var heatmapInstance = h337.create({
   container: document.getElementById("heatMap"),
@@ -48,11 +52,7 @@ function createHM(gazeInfo) {
 }
 
 function onClickCalibrationBtn() {
-  const userId = "YOUR_USER_ID";
-  // Next Page after calibration
-  const redirectUrl = "https://project-eyetrack.onrender.com";
-  // const redirectUrl = "http://localhost:8082/";
-  const calibrationPoint = 5;
+
   EasySeeSo.openCalibrationPage(
     licenseKey,
     userId,
